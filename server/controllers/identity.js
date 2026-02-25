@@ -61,10 +61,10 @@ module.exports.listIdentitiesWithPass = async (accountId, password, identityId) 
     if (!account) return { code: 403, message: "Account not found" };
 
     if (!(await compare(password, account.password))) return { code: 403, message: "Password incorrect" };
-
+    const identity = await module.exports.getIdentity(accountId, identityId);
     const creds = await module.exports.getIdentityCredentials(identityId);
     return {
-        ...creds,
+        ...identity,
         password: creds["password"] || null,
         sshKey: creds["ssh-key"] || null,
         passphrase: creds["passphrase"] || null,
