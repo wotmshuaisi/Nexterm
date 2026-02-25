@@ -56,26 +56,19 @@ module.exports.listIdentities = async (accountId) => {
     return [...personal.map(i => format(i, 'personal')), ...org.map(i => format(i, 'organization'))];
 };
 
-module.exports.listIdentitiesWithPass = async (accountId, password) => {
+module.exports.listIdentitiesWithPass = async (accountId, password, identityId) => {
     const account = await Account.findByPk(accountId);
     if (!account) return { code: 403, message: "Account not found" };
 
     if (!(await compare(password, account.password))) return { code: 403, message: "Password incorrect" };
 
-    const identities = await module.exports.listIdentities(accountId);
-
-    const result = [];
-    for (const i of identities) {
-        const creds = await module.exports.getIdentityCredentials(i.id);
-        result.push({
-            ...i,
-            password: creds["password"] || null,
-            sshKey: creds["ssh-key"] || null,
-            passphrase: creds["passphrase"] || null,
-        });
-    }
-
-    return result;
+    const creds = await module.exports.getIdentityCredentials(identityId);
+    return {
+        ...creds,
+        password: creds["password"] || null,
+        sshKey: creds["ssh-key"] || null,
+        passphrase: creds["passphrase"] || null,
+    };
 };
 
 module.exports.createIdentity = async (accountId, config) => {
