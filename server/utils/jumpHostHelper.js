@@ -1,12 +1,22 @@
 const sshd = require("ssh2");
+const Child_Process = require('duplex-child-process')
 const { getIdentityCredentials, listIdentities } = require("../controllers/identity");
 const Entry = require("../models/Entry");
 const EntryIdentity = require("../models/EntryIdentity");
 const Identity = require("../models/Identity");
 
+
 const buildSSHOptions = (identity, credentials, entryConfig) => {
-    const base = { host: entryConfig.ip, port: entryConfig.port, username: identity.username, tryKeyboard: true };
+    let base = { username: identity.username, tryKeyboard: true };
     
+    if (process.env.SSH_PROXY) {
+        console.log("=>", process.env.SSH_PROXY, entryConfig.ip, entryConfig.port);
+        base.sock = Child_Process.spawn('ncat', ["--proxy-type", "socks5", '--proxy', process.env.SSH_PROXY, `${ entryConfig.ip }`, `${entryConfig.port}`]);
+    } else {
+        base.host = entryConfig.ip;
+        base.port = entryConfig.port;
+    }
+
     if (identity.type === "password" || identity.type === "password-only") {
         return { ...base, password: credentials.password };
     }

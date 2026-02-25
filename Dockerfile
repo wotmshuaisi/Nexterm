@@ -25,7 +25,7 @@ RUN apk add --no-cache \
 
 COPY package.json yarn.lock ./
 RUN if [ -n "$VERSION" ]; then \
-        jq --arg v "$VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json; \
+    jq --arg v "$VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json; \
     fi
 RUN for i in 1 2 3; do yarn install --production --frozen-lockfile --network-timeout 500000 && break || sleep 15; done
 
@@ -62,7 +62,7 @@ RUN apk add --no-cache \
     pango libvncserver libwebp openssl freerdp2-libs \
     pulseaudio libvorbis libogg libssh2 \
     ffmpeg-libavcodec ffmpeg-libavformat ffmpeg-libavutil ffmpeg-libswscale \
-    util-linux samba-client
+    util-linux samba-client nmap-ncat
 
 COPY --from=guacd-builder /install/usr/local/sbin/ /usr/local/sbin/
 COPY --from=guacd-builder /install/usr/local/lib/ /usr/local/lib/
