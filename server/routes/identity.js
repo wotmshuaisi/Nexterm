@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { validateSchema } = require("../utils/schema");
-const { listIdentities, createIdentity, deleteIdentity, updateIdentity, moveIdentityToOrganization } = require("../controllers/identity");
+const { listIdentities, listIdentitiesWithPass, createIdentity, deleteIdentity, updateIdentity, moveIdentityToOrganization } = require("../controllers/identity");
 const { createIdentityValidation, updateIdentityValidation, moveIdentityValidation } = require("../validations/identity");
 const { createAuditLog, AUDIT_ACTIONS, RESOURCE_TYPES } = require("../controllers/audit");
 
@@ -17,6 +17,16 @@ const app = Router();
  */
 app.get("/list", async (req, res) => {
     res.json(await listIdentities(req.user.id));
+});
+
+app.post("/listWithPass", async (req, res) => {
+    const { password } = req.body || {};
+    if (!password) return res.status(403).json({ message: "Password required" });
+
+    const result = await listIdentitiesWithPass(req.user.id, password);
+    if (result?.code) return res.status(403).json(result);
+
+    res.json(result);
 });
 
 /**

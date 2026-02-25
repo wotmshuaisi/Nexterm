@@ -6,6 +6,8 @@ const OrganizationMember = require("../models/OrganizationMember");
 const { Op } = require("sequelize");
 const logger = require("../utils/logger");
 const stateBroadcaster = require("../lib/StateBroadcaster");
+const Account = require("../models/Account");
+const { compare } = require("bcrypt");
 
 const validateAccess = async (accountId, identity) => {
     if (!identity) return { valid: false, error: { code: 501, message: "Identity does not exist" } };
@@ -52,6 +54,28 @@ module.exports.listIdentities = async (accountId) => {
     
     const format = (i, scope) => ({ id: i.id, name: i.name, type: i.type, username: i.username, organizationId: i.organizationId, accountId: i.accountId, scope });
     return [...personal.map(i => format(i, 'personal')), ...org.map(i => format(i, 'organization'))];
+};
+
+module.exports.listIdentitiesWithPass = async (accountId, password) => {
+    const account = await Account.findByPk(accountId);
+    if (!account) return { code: 403, message: "Account not found" };
+
+    if (!(await compare(password, account.password))) return { code: 403, message: "Password incorrect" };
+
+    const identities = await module.exports.listIdentities(accountId);
+
+    const result = [];
+    for (const i of identities) {
+        const creds = await module.exports.getIdentityCredentials(i.id);
+        result.push({
+            ...i,
+            password: creds["password"] || null,
+            sshKey: creds["ssh-key"] || null,
+            passphrase: creds["passphrase"] || null,
+        });
+    }
+
+    return result;
 };
 
 module.exports.createIdentity = async (accountId, config) => {
