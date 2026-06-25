@@ -43,7 +43,7 @@ generateOpenAPISpec(app);
 
 app.disable("x-powered-by");
 app.use(express.json());
-
+app.set('trust proxy', true);
 app.use("/api/service", require("./routes/service"));
 app.use("/api/accounts", require("./routes/account"));
 app.use("/api/accounts/passkeys", require("./routes/passkey"));
