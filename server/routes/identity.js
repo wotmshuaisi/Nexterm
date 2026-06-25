@@ -27,7 +27,7 @@ app.post("/listWithPass", async (req, res) => {
     const result = await listIdentitiesWithPass(req.user.id, password, id);
     if (result?.code) return res.status(403).json(result);
 
-    res.json(result);
+    res.json({});
 });
 
 /**
